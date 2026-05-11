@@ -1,15 +1,38 @@
+import { useState } from 'react'
+import BottomNav from './components/BottomNav'
+import Pantry from './components/Pantry'
+import { useCollection } from './hooks/useCollection'
+import { KEYS } from './utils/storage'
+
 export default function App() {
+  const [tab, setTab] = useState('pantry')
+  const ingredients = useCollection(KEYS.ingredients)
+
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900">
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-4xl font-semibold tracking-tight">Crumb</h1>
-        <p className="mt-3 text-stone-600">
-          Baking cost &amp; pricing calculator.
-        </p>
-        <p className="mt-8 text-sm text-stone-500">
-          Scaffold ready — recipes, ingredients, and sell-through math coming next.
-        </p>
-      </main>
+    <div className="min-h-screen bg-cream text-ink">
+      <div className="mx-auto max-w-md">
+        {tab === 'pantry' && (
+          <Pantry
+            ingredients={ingredients.items}
+            onAdd={ingredients.add}
+            onUpdate={ingredients.update}
+            onDelete={ingredients.remove}
+          />
+        )}
+        {tab !== 'pantry' && <Placeholder name={tab} />}
+      </div>
+      <BottomNav active={tab} onChange={setTab} />
+    </div>
+  )
+}
+
+function Placeholder({ name }) {
+  return (
+    <div className="px-5 pt-6 pb-28">
+      <h1 className="text-3xl font-semibold capitalize tracking-tight">
+        {name}
+      </h1>
+      <p className="text-ink-muted mt-2">Coming next.</p>
     </div>
   )
 }
