@@ -42,3 +42,10 @@ body {
 .input::placeholder {
   color: var(--color-ink-muted);
 }
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
