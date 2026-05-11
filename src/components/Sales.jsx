@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { ChevronRight, X } from 'lucide-react'
-import { costPerItem } from '../utils/calc'
+import {
+  batchIngredientCost,
+  batchLaborCost,
+  costPerItem,
+} from '../utils/calc'
 import { formatMoney } from '../utils/format'
 import { unitLabelForCategory } from '../utils/items'
 import ItemAvatar from './ItemAvatar'
@@ -55,11 +59,19 @@ export default function Sales({ store }) {
     (acc, e) => ({
       revenue: acc.revenue + e.revenue,
       ingredientCost: acc.ingredientCost + e.ingredientCost,
+      laborCost: acc.laborCost + e.laborCost,
       profit: acc.profit + e.profit,
       wasted: acc.wasted + e.wasted,
       ifAllSoldProfit: acc.ifAllSoldProfit + e.ifAllSoldProfit,
     }),
-    { revenue: 0, ingredientCost: 0, profit: 0, wasted: 0, ifAllSoldProfit: 0 }
+    {
+      revenue: 0,
+      ingredientCost: 0,
+      laborCost: 0,
+      profit: 0,
+      wasted: 0,
+      ifAllSoldProfit: 0,
+    }
   )
   const totalsMargin =
     totals.revenue > 0 ? (totals.profit / totals.revenue) * 100 : null
@@ -131,6 +143,11 @@ function enrichLine(line, store) {
   const recipeLines = store.recipeIngredients.items.filter(
     (ri) => ri.recipe_id === recipe?.id
   )
+  const yieldN = recipe?.batch_yield || 1
+  const ingredientPerItem = item
+    ? batchIngredientCost(store.ingredients.items, recipeLines) / yieldN
+    : 0
+  const laborPerItem = item ? batchLaborCost(recipe, store.settings) / yieldN : 0
   const cost = item
     ? costPerItem(recipe, store.ingredients.items, recipeLines, store.settings)
     : 0
@@ -140,12 +157,14 @@ function enrichLine(line, store) {
   const price = parseFloat(line.price) || 0
 
   const revenue = sold * price
-  const ingredientCost = baked * cost
-  const profit = revenue - ingredientCost
+  const ingredientCost = baked * ingredientPerItem
+  const laborCost = baked * laborPerItem
+  const totalCost = ingredientCost + laborCost
+  const profit = revenue - totalCost
   const sellThrough = baked > 0 ? (sold / baked) * 100 : 0
   const unsold = Math.max(0, baked - sold)
-  const wasted = unsold * cost
-  const ifAllSoldProfit = baked * price - ingredientCost
+  const wasted = unsold * ingredientPerItem
+  const ifAllSoldProfit = baked * price - totalCost
   const margin = revenue > 0 ? (profit / revenue) * 100 : null
 
   const hasNumbers = item != null && baked > 0 && price > 0
@@ -154,12 +173,15 @@ function enrichLine(line, store) {
     line,
     item,
     cost,
+    ingredientPerItem,
+    laborPerItem,
     baked,
     sold,
     price,
     unsold,
     revenue,
     ingredientCost,
+    laborCost,
     profit,
     sellThrough,
     wasted,
@@ -311,12 +333,28 @@ function TotalsCard({ totals, margin, isMultiLine, singleEnriched }) {
           label="Ingredient cost"
           detail={
             !isMultiLine && singleEnriched.hasNumbers
-              ? `${singleEnriched.baked} × ${formatMoney(singleEnriched.cost)}`
+              ? `${singleEnriched.baked} × ${formatMoney(
+                  singleEnriched.ingredientPerItem
+                )}`
               : null
           }
           value={`−${formatMoney(totals.ingredientCost)}`}
           negative
         />
+        {totals.laborCost > 0 && (
+          <Row
+            label="Labor cost"
+            detail={
+              !isMultiLine && singleEnriched.hasNumbers
+                ? `${singleEnriched.baked} × ${formatMoney(
+                    singleEnriched.laborPerItem
+                  )}`
+                : null
+            }
+            value={`−${formatMoney(totals.laborCost)}`}
+            negative
+          />
+        )}
       </div>
 
       <div className="bg-terracotta-bg px-4 py-4 flex items-end justify-between gap-3">
