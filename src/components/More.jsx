@@ -47,36 +47,31 @@ export default function More({
 
       <div className="px-5 space-y-5">
         <Section title="Labor">
-          <div className="bg-white rounded-2xl divide-y divide-divider overflow-hidden">
-            <div className="px-4 py-3 flex items-center justify-between gap-3">
-              <span className="text-ink">Hourly rate</span>
-              <div className="relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">
-                  $
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  inputMode="decimal"
-                  value={settings.labor_rate_per_hour}
-                  onChange={(e) =>
-                    onUpdateSettings({
-                      labor_rate_per_hour: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="w-24 pl-6 pr-2 py-1.5 rounded-lg border border-divider text-right tabular-nums focus:outline-none focus:border-ink-muted/50"
-                />
+          <div className="bg-white rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-ink">Hourly rate</div>
+              <div className="text-xs text-ink-muted mt-0.5">
+                Applied to recipes with labor time set.
               </div>
             </div>
-            <ToggleRow
-              label="Include labor in cost"
-              subtitle="Adds labor cost to batch totals."
-              checked={settings.include_labor_in_cost}
-              onChange={(v) =>
-                onUpdateSettings({ include_labor_in_cost: v })
-              }
-            />
+            <div className="relative shrink-0">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">
+                $
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                inputMode="decimal"
+                value={settings.labor_rate_per_hour}
+                onChange={(e) =>
+                  onUpdateSettings({
+                    labor_rate_per_hour: parseFloat(e.target.value) || 0,
+                  })
+                }
+                className="w-24 pl-6 pr-2 py-1.5 rounded-lg border border-divider text-right tabular-nums focus:outline-none focus:border-ink-muted/50"
+              />
+            </div>
           </div>
         </Section>
 
@@ -203,25 +198,6 @@ function Section({ title, children }) {
       </h2>
       {children}
     </section>
-  )
-}
-
-function ToggleRow({ label, subtitle, checked, onChange }) {
-  return (
-    <label className="flex items-center justify-between px-4 py-3 cursor-pointer gap-3">
-      <div className="min-w-0">
-        <div className="text-ink">{label}</div>
-        {subtitle && (
-          <div className="text-xs text-ink-muted mt-0.5">{subtitle}</div>
-        )}
-      </div>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="w-5 h-5 accent-terracotta shrink-0"
-      />
-    </label>
   )
 }
 

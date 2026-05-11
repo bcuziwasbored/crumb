@@ -10,7 +10,6 @@ export const KEYS = {
 
 export const DEFAULT_SETTINGS = {
   labor_rate_per_hour: 15,
-  include_labor_in_cost: false,
   currency: 'USD',
 }
 

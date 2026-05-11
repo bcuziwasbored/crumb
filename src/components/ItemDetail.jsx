@@ -12,6 +12,7 @@ import {
 } from '../utils/conversions'
 import {
   batchIngredientCost,
+  batchLaborCost,
   batchTotalCost,
   costPerItem,
   ingredientLineCost,
@@ -55,6 +56,10 @@ export default function ItemDetail({ itemId, store, onBack, onDelete }) {
     recipeLines,
     store.settings
   )
+  const yieldN = recipe?.batch_yield || 1
+  const ingredientPerItem =
+    batchIngredientCost(store.ingredients.items, recipeLines) / yieldN
+  const laborPerItem = batchLaborCost(recipe, store.settings) / yieldN
   const margin = marginPercent(item.price, cost)
   const unitLabel = unitLabelForCategory(item.category)
 
@@ -94,7 +99,13 @@ export default function ItemDetail({ itemId, store, onBack, onDelete }) {
           />
         )}
         {tab === 'pricing' && (
-          <PricingTab item={item} cost={cost} onUpdateItem={updateItem} />
+          <PricingTab
+            item={item}
+            cost={cost}
+            ingredientPerItem={ingredientPerItem}
+            laborPerItem={laborPerItem}
+            onUpdateItem={updateItem}
+          />
         )}
         {tab === 'notes' && (
           <NotesTab
@@ -555,7 +566,13 @@ function RecipeIngredientForm({ pantry, initial, onSave, onDelete, onCancel }) {
   )
 }
 
-function PricingTab({ item, cost, onUpdateItem }) {
+function PricingTab({
+  item,
+  cost,
+  ingredientPerItem,
+  laborPerItem,
+  onUpdateItem,
+}) {
   const [priceInput, setPriceInput] = useState(
     item.price != null ? item.price.toFixed(2) : ''
   )
@@ -583,8 +600,38 @@ function PricingTab({ item, cost, onUpdateItem }) {
     onUpdateItem({ price: rounded })
   }
 
+  const showBreakdown = laborPerItem > 0
+
   return (
     <div className="space-y-4">
+      {showBreakdown && (
+        <div className="bg-white rounded-2xl p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-3">
+            Cost per item
+          </h3>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex justify-between">
+              <span className="text-ink-muted">Ingredients</span>
+              <span className="text-ink tabular-nums">
+                {formatMoney(ingredientPerItem)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-muted">Labor</span>
+              <span className="text-ink tabular-nums">
+                {formatMoney(laborPerItem)}
+              </span>
+            </div>
+            <div className="flex justify-between border-t border-divider pt-2 mt-1">
+              <span className="text-ink font-medium">Total</span>
+              <span className="text-ink font-medium tabular-nums">
+                {formatMoney(cost)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl p-4">
         <label className="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-2">
           Your price
@@ -708,7 +755,7 @@ function NotesTab({ item, recipe, onUpdateItem, onUpdateRecipe, onDelete }) {
             placeholder="45"
           />
           <p className="text-xs text-ink-muted mt-1">
-            Only used in cost calc if enabled in Settings.
+            Multiplied by your hourly rate from Settings.
           </p>
         </label>
       </div>

@@ -14,8 +14,8 @@ export function batchIngredientCost(ingredients, recipeIngredients) {
 }
 
 export function batchLaborCost(recipe, settings) {
-  if (!settings?.include_labor_in_cost || !recipe?.labor_minutes) return 0
-  return (recipe.labor_minutes / 60) * (settings.labor_rate_per_hour || 0)
+  if (!recipe?.labor_minutes) return 0
+  return (recipe.labor_minutes / 60) * (settings?.labor_rate_per_hour || 0)
 }
 
 export function batchTotalCost(recipe, ingredients, recipeIngredients, settings) {
